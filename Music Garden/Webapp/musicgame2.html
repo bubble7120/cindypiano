@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>音符辨識遊戲</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; background-color: #f4f4f4; }
+        h1 { color: #333; }
+        button {
+            font-size: 20px;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        #result { font-size: 22px; font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+    <h1>🎵 音符辨識遊戲 🎵</h1>
+    <p>聽音後，選擇正確的音名！</p>
+    <p>目前得分：<span id="score">0</span> / 5</p>
+    <button id="playNote">播放音符</button>
+    <br>
+    <button id="guessC">C</button>
+    <button id="guessD">D</button>
+    <button id="guessE">E</button>
+    <button id="guessF">F</button>
+    <button id="guessG">G</button>
+    <button id="guessA">A</button>
+    <button id="guessB">B</button>
+    <p id="result"></p>
+
+    <script>
+        let audioContext;
+        document.addEventListener("click", () => {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        });
+
+        let notes = {
+            "C": 261.63, "D": 293.66, "E": 329.63, "F": 349.23,
+            "G": 392.00, "A": 440.00, "B": 493.88
+        };
+
+        let correctNote;
+        let score = 0;
+        let rounds = 0;
+
+        function playNote(frequency) {
+            if (!audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            oscillator.type = "sine";
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.connect(audioContext.destination);
+            oscillator.start();
+            setTimeout(() => oscillator.stop(), 1000);
+        }
+
+        function generateNote() {
+            if (rounds >= 5) {
+                document.getElementById("result").innerText = `🏆 遊戲結束！你的最終得分：${score} / 5`;
+                document.getElementById("playNote").style.display = "none";
+                document.querySelectorAll("button[id^='guess']").forEach(btn => btn.style.display = "none");
+                return;
+            }
+
+            let keys = Object.keys(notes);
+            correctNote = keys[Math.floor(Math.random() * keys.length)];
+            let frequency = notes[correctNote];
+
+            document.getElementById("playNote").onclick = () => playNote(frequency);
+            document.getElementById("guessC").onclick = () => checkAnswer("C");
+            document.getElementById("guessD").onclick = () => checkAnswer("D");
+            document.getElementById("guessE").onclick = () => checkAnswer("E");
+            document.getElementById("guessF").onclick = () => checkAnswer("F");
+            document.getElementById("guessG").onclick = () => checkAnswer("G");
+            document.getElementById("guessA").onclick = () => checkAnswer("A");
+            document.getElementById("guessB").onclick = () => checkAnswer("B");
+        }
+
+        function checkAnswer(selectedNote) {
+            if (selectedNote === correctNote) {
+                score++;
+                document.getElementById("result").innerText = `✅ 正確！這是 ${correctNote} 音符！`;
+            } else {
+                document.getElementById("result").innerText = `❌ 錯誤！正確答案是 ${correctNote}。`;
+            }
+
+            rounds++;
+            document.getElementById("score").innerText = score;
+
+            setTimeout(() => {
+                document.getElementById("result").innerText = "";
+                generateNote();
+            }, 1500);
+        }
+
+        generateNote();
+    </script>
+</body>
+</html>
